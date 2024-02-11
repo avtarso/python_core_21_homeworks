@@ -1,0 +1,2 @@
+# python_core_homework_12
+python_core_homework_12
