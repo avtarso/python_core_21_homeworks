@@ -1,5 +1,20 @@
 from collections import UserDict
 from datetime import date, datetime
+import pickle
+
+from settings import filename, PAG
+
+
+wellcome_message = f"Please enter your command:  "
+hello_message = "How can I help you?"
+good_bye_message = "Good bye!"
+bad_command = "Incorrect command!"
+help_string = """For working with me, please, input one of next command:
+"hello" - I print "How can I help you?"
+"show all" - I print all recorded phone numbers
+"find" - I find record by name or phone
+"good bye", "close" or "exit" - I stop working
+"help" - I print this text"""
 
 
 class Field:
@@ -144,7 +159,6 @@ class AddressBook(UserDict):
             return None
 
     def iterator_simple(self):
-        PAG = 3
         st_list, obj_len = [], len(self.data)
 
         for i, (name, record) in enumerate(self.data.items(), 1):
@@ -159,7 +173,6 @@ class AddressBook(UserDict):
         print(f"-->You can ^^see^^ {i} records from {obj_len}\n")
 
     def iterator(self):
-        PAG = 3
         obj_len = len(self.data)
         i = 0
 
@@ -178,51 +191,69 @@ class AddressBook(UserDict):
                 break
             if input(f"-->You can ^^see^^ {i} records from {obj_len}\n-->press any key to continue or 'q' to exit --> ").lower() == "q":
                 break
-
-
     
+    def write_contacts_to_file(self, filename):
+        with open(filename, "wb") as fh:
+            pickle.dump(self, fh)
+    
+    @classmethod
+    def read_contacts_from_file(cls, filename):
+        book = cls()
+        with open(filename, "rb") as fh:
+            book = pickle.load(fh)
+        return book
+    
+    def find_record(self, find_string):
+        find_string = find_string.lower()
 
+        book = AddressBook()
+        for i, (name, record) in enumerate(self.data.items(), 1):
+            if find_string.isdigit():
+                for phone in record.phones:
+                    if str(phone).find(find_string) > -1:
+                        book.add_record(record)
+            else:
+                if name.lower().find(find_string) > -1:
+                    book.add_record(record)
+        return book
 
-book = AddressBook()
+def main():
+    
+    book = AddressBook()
+    book = AddressBook.read_contacts_from_file(filename)
+    book.write_contacts_to_file("adressbook.pkl")
 
-john_record1 = Record("John1")
-john_record1.add_phone("1234567890")
-book.add_record(john_record1)
+    while True:
+        user_input = input(wellcome_message)
+        user_command = user_input.lower()
+ 
+        if user_command == "help": 
+            print(help_string)
+        elif user_command == "hello":
+            print(hello_message)
+        elif user_command == "show all":
+            book.iterator()
 
-jane_record1 = Record("Jane1")
-jane_record1.add_phone("9876543210")
-book.add_record(jane_record1)
+        elif user_command.startswith("find"):
+            find_string = input("Please input what you want find: ")
+            find_result = AddressBook()
+            find_result = book.find_record(find_string)
+            if find_result:
+                book.find_record(find_string).iterator_simple()
+            else:
+                print(f"I can`t find any matches with '{find_string}'")
 
-john_record2 = Record("John2")
-john_record2.add_phone("1234567890")
-john_record2.add_birthday("01/01/2024")
-print("\n>>>Second add record birthday\n")
-john_record2.add_birthday("01/01/2024")
-book.add_record(john_record2)
+        # elif user_command.startswith("add"):
+        #     print(new_phone(user_input))
 
-jane_record2 = Record("Jane2")
-jane_record2.add_phone("9876543210")
-jane_record2.add_birthday("01/06/2024")
-book.add_record(jane_record2)
+        # elif user_command.startswith("change"):
+        #     print(edit_phone(user_input))
+        
+        elif user_command in ["good bye", "close", "exit"]:
+            print(good_bye_message)
+            break
 
-john_record3 = Record("John3")
-john_record3.add_phone("1234567890")
-book.add_record(john_record3)
+        else: print(bad_command + "\n" + help_string)
 
-jane_record3 = Record("Jane3")
-jane_record3.add_phone("9876543210")
-book.add_record(jane_record3)
-
-
-print("\n>>>work days_to_birthday()\n")
-print(john_record2.days_to_birthday())
-print(jane_record2.days_to_birthday())
-print(jane_record3.days_to_birthday())
-
-print("\n>>>start pagination version 1\n")
-book.iterator()
-print("\n>>>end pagination version 1\n")
-
-print("\n>>>start pagination version 2\n")
-book.iterator_simple()
-print("\n>>>end pagination version 2\n")
+if __name__ == '__main__':
+    main()
