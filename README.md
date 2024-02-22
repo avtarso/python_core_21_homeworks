@@ -5,6 +5,6 @@ python_core_21_homework
 7.
 8.
 9.
-10
+10.
 11.
 12.
