@@ -1,5 +1,5 @@
 # python_core_21_homeworks
-python_core_21_homework
+python_core_21_homeworks
 
 6.
 7.
